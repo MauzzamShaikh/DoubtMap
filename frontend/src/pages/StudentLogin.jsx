@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { saveStudentAuth } from '../utils/studentAuth';
+import { getStudentToken, saveStudentAuth } from '../utils/studentAuth';
 import { Mail, Lock, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 
 function StudentLogin() {
@@ -10,6 +10,12 @@ function StudentLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (getStudentToken()) {
+      navigate('/join');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,8 +33,6 @@ function StudentLogin() {
       if (!res.data.student.isVerified) {
         localStorage.setItem('show_student_verify_warning', 'true');
       }
-      navigate('/join');
-
       navigate('/join');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');

@@ -7,14 +7,56 @@ const protectStudent = require('../middleware/studentAuth');
 
 function sanitizeDoubtForBroadcast(doubt) {
   const obj = doubt.toObject ? doubt.toObject() : doubt;
-  const { studentId, ...safeDoubt } = obj;
+  const { studentId, studentFingerprint, ...safeDoubt } = obj;
   return safeDoubt;
+}
+
+function normalizeDoubtText(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getWordSet(text) {
+  return new Set(
+    normalizeDoubtText(text)
+      .split(' ')
+      .filter((word) => word.length > 2)
+  );
+}
+
+function getSimilarityScore(a, b) {
+  const normalizedA = normalizeDoubtText(a);
+  const normalizedB = normalizeDoubtText(b);
+
+  if (!normalizedA || !normalizedB) return 0;
+  if (normalizedA === normalizedB) return 1;
+  if (normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA)) return 0.92;
+
+  const wordsA = getWordSet(normalizedA);
+  const wordsB = getWordSet(normalizedB);
+  if (!wordsA.size || !wordsB.size) return 0;
+
+  const intersection = [...wordsA].filter((word) => wordsB.has(word)).length;
+  const union = new Set([...wordsA, ...wordsB]).size;
+
+  return intersection / union;
+}
+
+function isSameSubmitter(existingDoubt, studentId, fingerprint) {
+  if (studentId && existingDoubt.studentId) {
+    return existingDoubt.studentId.toString() === studentId;
+  }
+
+  return Boolean(fingerprint && existingDoubt.studentFingerprint === fingerprint);
 }
 
 // POST /api/sessions/:code/doubts -> submit a new doubt
 router.post('/:code/doubts', protectStudent, async (req, res) => {
   try {
-    const { text, topic, aiAttempted } = req.body;
+    const { text, topic, aiAttempted, fingerprint } = req.body;
 
     if (!text) {
       return res.status(400).json({ error: 'Doubt text is required' });
@@ -42,12 +84,41 @@ router.post('/:code/doubts', protectStudent, async (req, res) => {
       });
     }
 
+    const studentId = req.student ? req.student.id : null;
+    const activeDoubts = await Doubt.find({
+      sessionId: session._id,
+      resolved: false
+    }).select('text topic studentId studentFingerprint');
+
+    const sameStudentDuplicate = activeDoubts.find((existingDoubt) =>
+      isSameSubmitter(existingDoubt, studentId, fingerprint) &&
+      getSimilarityScore(existingDoubt.text, text) >= 0.82
+    );
+
+    if (sameStudentDuplicate) {
+      return res.status(400).json({
+        error: 'Cannot submit the same doubt again.'
+      });
+    }
+
+    const existingSimilarDoubt = activeDoubts.find((existingDoubt) =>
+      getSimilarityScore(existingDoubt.text, text) >= 0.72
+    );
+
+    if (existingSimilarDoubt) {
+      return res.status(400).json({
+        error: 'Same doubt present. Please upvote the existing doubt.',
+        duplicateDoubtId: existingSimilarDoubt._id
+      });
+    }
+
     const doubt = await Doubt.create({
       sessionId: session._id,
       text,
       topic: topic || 'General',
       aiAttempted: aiAttempted || false,
-      studentId: req.student ? req.student.id : null
+      studentId,
+      studentFingerprint: fingerprint || null
     });
 
     const io = req.app.get('io');

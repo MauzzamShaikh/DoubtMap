@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStudentToken, getStudentInfo, logoutStudent } from '../utils/studentAuth';
+import { getTeacherToken } from '../utils/auth';
 import { GraduationCap, Sparkles, BookOpen, LogOut, ArrowRight, UserPlus, LogIn, ChevronLeft } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import logoImg from '../assets/logo.jpg';
@@ -10,6 +11,7 @@ function Home() {
   const [showStudentOptions, setShowStudentOptions] = useState(false);
 
   const studentLoggedIn = !!getStudentToken();
+  const teacherLoggedIn = !!getTeacherToken();
   const studentInfo = getStudentInfo();
 
   const handleLogout = () => {
@@ -52,7 +54,7 @@ function Home() {
               <h2 className="text-lg font-semibold text-slate-300 mb-2 text-center">Choose your role</h2>
               
               <button
-                onClick={() => navigate('/teacher-login')}
+                onClick={() => navigate(teacherLoggedIn ? '/my-sessions' : '/teacher-login')}
                 className="group relative flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
@@ -68,7 +70,7 @@ function Home() {
               </button>
 
               <button
-                onClick={() => setShowStudentOptions(true)}
+                onClick={() => (studentLoggedIn ? navigate('/join') : setShowStudentOptions(true))}
                 className="group relative flex items-center justify-between bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 text-white py-4 px-6 rounded-2xl font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <div className="flex items-center gap-3">

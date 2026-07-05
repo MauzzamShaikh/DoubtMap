@@ -2,10 +2,14 @@ const mongoose = require('mongoose');
 
 const doubtSchema = new mongoose.Schema({
   studentId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Student',
-  default: null
-},
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    default: null
+  },
+  studentFingerprint: {
+    type: String,
+    default: null
+  },
   sessionId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Session',

@@ -102,7 +102,8 @@ function StudentSession() {
       await api.post(`/sessions/${code}/doubts`, {
         text,
         topic: topic || 'General',
-        aiAttempted: askedAI
+        aiAttempted: askedAI,
+        fingerprint
       });
       setText('');
       setTopic('');

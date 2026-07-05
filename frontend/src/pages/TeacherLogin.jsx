@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { saveTeacherAuth } from '../utils/auth';
+import { getTeacherToken, saveTeacherAuth } from '../utils/auth';
 import { Mail, Lock, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 
 function TeacherLogin() {
@@ -10,6 +10,12 @@ function TeacherLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (getTeacherToken()) {
+      navigate('/my-sessions');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
