@@ -70,7 +70,7 @@ function Home() {
               </button>
 
               <button
-                onClick={() => (studentLoggedIn ? navigate('/join') : setShowStudentOptions(true))}
+                onClick={() => setShowStudentOptions(true)}
                 className="group relative flex items-center justify-between bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 text-white py-4 px-6 rounded-2xl font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
