@@ -26,14 +26,10 @@ const DOUBT_FILLER_WORDS = new Set([
   'are',
   'can',
   'could',
-  'define',
-  'definition',
   'did',
   'do',
   'does',
   'doubt',
-  'explain',
-  'explanation',
   'for',
   'give',
   'help',
@@ -43,9 +39,6 @@ const DOUBT_FILLER_WORDS = new Set([
   'maam',
   'madam',
   'me',
-  'mean',
-  'meaning',
-  'means',
   'miss',
   'of',
   'please',
@@ -59,6 +52,17 @@ const DOUBT_FILLER_WORDS = new Set([
   'you'
 ]);
 
+const INTENT_KEYWORDS = {
+  definition: new Set(['define', 'definition', 'explain', 'explanation', 'mean', 'meaning', 'means', 'overview', 'short']),
+  properties: new Set(['property', 'properties', 'characteristic', 'characteristics', 'feature', 'features']),
+  types: new Set(['type', 'types', 'kind', 'kinds', 'category', 'categories']),
+  difference: new Set(['difference', 'different', 'differentiate', 'between', 'compare', 'comparison', 'versus', 'vs']),
+  examples: new Set(['example', 'examples', 'sample', 'samples', 'illustration']),
+  syntax: new Set(['syntax', 'query', 'command', 'write', 'code']),
+  useCase: new Set(['use', 'uses', 'usage', 'application', 'applications', 'when', 'where']),
+  advantages: new Set(['advantage', 'advantages', 'benefit', 'benefits', 'disadvantage', 'disadvantages', 'limitation', 'limitations'])
+};
+
 function normalizeConceptWord(word) {
   if (word.endsWith('ies') && word.length > 4) return `${word.slice(0, -3)}y`;
   if (word.endsWith('ing') && word.length > 5) return word.slice(0, -3);
@@ -67,14 +71,36 @@ function normalizeConceptWord(word) {
   return word;
 }
 
+function getDoubtIntent(words) {
+  const normalizedWords = words.map(normalizeConceptWord);
+
+  for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
+    if (normalizedWords.some((word) => keywords.has(word))) {
+      return intent;
+    }
+  }
+
+  return 'definition';
+}
+
 function getConceptWords(text) {
+  const intentWords = new Set(Object.values(INTENT_KEYWORDS).flatMap((keywords) => [...keywords]));
   const words = normalizeDoubtText(text)
     .split(' ')
     .filter((word) => !DOUBT_FILLER_WORDS.has(word))
     .map(normalizeConceptWord)
-    .filter((word) => word.length > 1 && !DOUBT_FILLER_WORDS.has(word));
+    .filter((word) => word.length > 1 && !DOUBT_FILLER_WORDS.has(word) && !intentWords.has(word));
 
   return [...new Set(words)];
+}
+
+function getDoubtSignature(text) {
+  const words = normalizeDoubtText(text).split(' ').filter(Boolean);
+
+  return {
+    intent: getDoubtIntent(words),
+    conceptWords: getConceptWords(text)
+  };
 }
 
 function getSimilarityScore(a, b) {
@@ -83,10 +109,13 @@ function getSimilarityScore(a, b) {
 
   if (!normalizedA || !normalizedB) return 0;
   if (normalizedA === normalizedB) return 1;
-  if (normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA)) return 0.92;
 
-  const wordsA = getConceptWords(normalizedA);
-  const wordsB = getConceptWords(normalizedB);
+  const signatureA = getDoubtSignature(normalizedA);
+  const signatureB = getDoubtSignature(normalizedB);
+  if (signatureA.intent !== signatureB.intent) return 0;
+
+  const wordsA = signatureA.conceptWords;
+  const wordsB = signatureB.conceptWords;
   if (!wordsA.length || !wordsB.length) return 0;
 
   const conceptA = wordsA.join(' ');
@@ -147,7 +176,7 @@ router.post('/:code/doubts', protectStudent, async (req, res) => {
 
     const sameStudentDuplicate = activeDoubts.find((existingDoubt) =>
       isSameSubmitter(existingDoubt, studentId, fingerprint) &&
-      getSimilarityScore(existingDoubt.text, text) >= 0.82
+      getSimilarityScore(existingDoubt.text, text) >= 0.9
     );
 
     if (sameStudentDuplicate) {
@@ -157,7 +186,7 @@ router.post('/:code/doubts', protectStudent, async (req, res) => {
     }
 
     const existingSimilarDoubt = activeDoubts.find((existingDoubt) =>
-      getSimilarityScore(existingDoubt.text, text) >= 0.72
+      getSimilarityScore(existingDoubt.text, text) >= 0.9
     );
 
     if (existingSimilarDoubt) {
