@@ -35,6 +35,10 @@ const doubtSchema = new mongoose.Schema({
   aiAttempted: {
     type: Boolean,
     default: false
+  },
+  fingerprint: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 

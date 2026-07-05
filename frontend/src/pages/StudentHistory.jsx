@@ -18,6 +18,8 @@ function StudentHistory() {
       return;
     }
 
+    localStorage.setItem('last_student_page', '/history');
+
     const fetchHistory = async () => {
       try {
         const res = await api.get('/history');
@@ -35,6 +37,7 @@ function StudentHistory() {
 
   const handleLogout = () => {
     logoutStudent();
+    localStorage.removeItem('last_student_page');
     navigate('/');
   };
 

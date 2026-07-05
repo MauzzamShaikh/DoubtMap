@@ -51,6 +51,8 @@ function StudentSession() {
   useEffect(() => {
     fetchData();
 
+    localStorage.setItem('last_student_page', `/session/${code.toUpperCase()}`);
+
     socket.emit('join_session', code.toUpperCase());
 
     socket.on('new_doubt', (doubt) => {
@@ -102,7 +104,8 @@ function StudentSession() {
       await api.post(`/sessions/${code}/doubts`, {
         text,
         topic: topic || 'General',
-        aiAttempted: askedAI
+        aiAttempted: askedAI,
+        fingerprint
       });
       setText('');
       setTopic('');

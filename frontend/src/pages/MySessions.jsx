@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { getTeacherToken, getTeacherInfo } from '../utils/auth';
+import { getTeacherToken, getTeacherInfo, logoutTeacher } from '../utils/auth';
 import ThemeToggle from '../components/ThemeToggle';
 import { Loader2, ArrowLeft, Plus, BookOpen, AlertTriangle } from 'lucide-react';
 
@@ -78,10 +78,16 @@ function MySessions() {
       <div className="max-w-3xl mx-auto relative z-10 animate-fade-in">
         {/* Back navigation */}
         <div className="mb-4">
-          <Link to="/" className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors group">
+          <button
+            onClick={() => {
+              logoutTeacher();
+              navigate('/');
+            }}
+            className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors group cursor-pointer"
+          >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
             Sign Out / Home
-          </Link>
+          </button>
         </div>
 
         {/* Dashboard Profile panel */}
