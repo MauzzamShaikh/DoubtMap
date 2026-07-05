@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
 
-const socket = io('https://doubtmap-backend.onrender.com');
+const socket = io('doubtmap-production.up.railway.app');
 
 export default socket;

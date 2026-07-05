@@ -3,7 +3,7 @@ import { getTeacherToken } from './utils/auth';
 import { getStudentToken } from './utils/studentAuth';
 
 const api = axios.create({
-  baseURL: 'https://doubtmap-backend.onrender.com/api',
+  baseURL: 'doubtmap-production.up.railway.app',
 });
 
 api.interceptors.request.use((config) => {
