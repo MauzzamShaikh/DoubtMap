@@ -3,7 +3,7 @@ import { getTeacherToken } from './utils/auth';
 import { getStudentToken } from './utils/studentAuth';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://doubtmap-backend.onrender.com/api',
 });
 
 api.interceptors.request.use((config) => {
