@@ -19,12 +19,62 @@ function normalizeDoubtText(text) {
     .trim();
 }
 
-function getWordSet(text) {
-  return new Set(
-    normalizeDoubtText(text)
-      .split(' ')
-      .filter((word) => word.length > 2)
-  );
+const DOUBT_FILLER_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'can',
+  'could',
+  'define',
+  'definition',
+  'did',
+  'do',
+  'does',
+  'doubt',
+  'explain',
+  'explanation',
+  'for',
+  'give',
+  'help',
+  'how',
+  'is',
+  'mam',
+  'maam',
+  'madam',
+  'me',
+  'mean',
+  'meaning',
+  'means',
+  'miss',
+  'of',
+  'please',
+  'sir',
+  'tell',
+  'the',
+  'this',
+  'to',
+  'what',
+  'why',
+  'you'
+]);
+
+function normalizeConceptWord(word) {
+  if (word.endsWith('ies') && word.length > 4) return `${word.slice(0, -3)}y`;
+  if (word.endsWith('ing') && word.length > 5) return word.slice(0, -3);
+  if (word.endsWith('ed') && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith('s') && word.length > 3) return word.slice(0, -1);
+  return word;
+}
+
+function getConceptWords(text) {
+  const words = normalizeDoubtText(text)
+    .split(' ')
+    .filter((word) => !DOUBT_FILLER_WORDS.has(word))
+    .map(normalizeConceptWord)
+    .filter((word) => word.length > 1 && !DOUBT_FILLER_WORDS.has(word));
+
+  return [...new Set(words)];
 }
 
 function getSimilarityScore(a, b) {
@@ -35,14 +85,21 @@ function getSimilarityScore(a, b) {
   if (normalizedA === normalizedB) return 1;
   if (normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA)) return 0.92;
 
-  const wordsA = getWordSet(normalizedA);
-  const wordsB = getWordSet(normalizedB);
-  if (!wordsA.size || !wordsB.size) return 0;
+  const wordsA = getConceptWords(normalizedA);
+  const wordsB = getConceptWords(normalizedB);
+  if (!wordsA.length || !wordsB.length) return 0;
 
-  const intersection = [...wordsA].filter((word) => wordsB.has(word)).length;
-  const union = new Set([...wordsA, ...wordsB]).size;
+  const conceptA = wordsA.join(' ');
+  const conceptB = wordsB.join(' ');
+  if (conceptA === conceptB) return 1;
+  if (conceptA.includes(conceptB) || conceptB.includes(conceptA)) return 0.9;
 
-  return intersection / union;
+  const setB = new Set(wordsB);
+  const intersection = wordsA.filter((word) => setB.has(word)).length;
+  const diceScore = (2 * intersection) / (wordsA.length + wordsB.length);
+  const coverageScore = intersection / Math.min(wordsA.length, wordsB.length);
+
+  return Math.max(diceScore, coverageScore * 0.86);
 }
 
 function isSameSubmitter(existingDoubt, studentId, fingerprint) {
