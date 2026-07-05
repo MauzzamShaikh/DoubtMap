@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { saveTeacherAuth } from '../utils/auth';
@@ -10,12 +10,6 @@ function TeacherLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (localStorage.getItem('teacher_token')) {
-      navigate('/my-sessions');
-    }
-  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

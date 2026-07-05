@@ -14,7 +14,6 @@ function Home() {
 
   const handleLogout = () => {
     logoutStudent();
-    localStorage.removeItem('last_student_page');
     setShowStudentOptions(false);
   };
 
@@ -53,14 +52,7 @@ function Home() {
               <h2 className="text-lg font-semibold text-slate-300 mb-2 text-center">Choose your role</h2>
               
               <button
-                onClick={() => {
-                  const teacherToken = localStorage.getItem('teacher_token');
-                  if (teacherToken) {
-                    navigate('/my-sessions');
-                  } else {
-                    navigate('/teacher-login');
-                  }
-                }}
+                onClick={() => navigate('/teacher-login')}
                 className="group relative flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
@@ -76,14 +68,7 @@ function Home() {
               </button>
 
               <button
-                onClick={() => {
-                  const lastPage = localStorage.getItem('last_student_page');
-                  if (lastPage) {
-                    navigate(lastPage);
-                  } else {
-                    setShowStudentOptions(true);
-                  }
-                }}
+                onClick={() => setShowStudentOptions(true)}
                 className="group relative flex items-center justify-between bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 text-white py-4 px-6 rounded-2xl font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
@@ -127,10 +112,7 @@ function Home() {
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-800">
                 <button
-                  onClick={() => {
-                    localStorage.removeItem('last_student_page');
-                    setShowStudentOptions(false);
-                  }}
+                  onClick={() => setShowStudentOptions(false)}
                   className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" /> Change Role

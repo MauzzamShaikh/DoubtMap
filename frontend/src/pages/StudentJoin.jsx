@@ -13,7 +13,6 @@ function StudentJoin() {
   const readerId = 'qr-reader';
 
   useEffect(() => {
-    localStorage.setItem('last_student_page', '/join');
     return () => {
       mountedRef.current = false;
     };
@@ -74,7 +73,6 @@ function StudentJoin() {
 
   const handleBack = async () => {
     await stopScanner();
-    localStorage.removeItem('last_student_page');
     navigate('/');
   };
 

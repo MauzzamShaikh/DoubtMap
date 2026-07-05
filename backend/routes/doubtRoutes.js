@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Doubt = require('../models/Doubt');
 const Session = require('../models/Session');
-const { isGenuineDoubt, checkDuplicateDoubt } = require('./aiRoutes');
+const { isGenuineDoubt } = require('./aiRoutes');
 const protectStudent = require('../middleware/studentAuth');
 
 function sanitizeDoubtForBroadcast(doubt) {
@@ -42,37 +42,12 @@ router.post('/:code/doubts', protectStudent, async (req, res) => {
       });
     }
 
-    const newStudentId = req.student ? req.student.id : null;
-    const newFingerprint = req.body.fingerprint || null;
-
-    try {
-      const duplicateDoubt = await checkDuplicateDoubt(text, session._id, newStudentId, newFingerprint);
-      if (duplicateDoubt) {
-        const isSameStudent =
-          (newStudentId && duplicateDoubt.studentId && newStudentId.toString() === duplicateDoubt.studentId.toString()) ||
-          (newFingerprint && duplicateDoubt.fingerprint && newFingerprint === duplicateDoubt.fingerprint);
-
-        if (isSameStudent) {
-          return res.status(400).json({
-            error: 'Cannot submit the same doubt'
-          });
-        } else {
-          return res.status(400).json({
-            error: 'Same doubt present, upvote the doubt'
-          });
-        }
-      }
-    } catch (dupErr) {
-      console.error('Duplicate check failed, allowing doubt through:', dupErr.message);
-    }
-
     const doubt = await Doubt.create({
       sessionId: session._id,
       text,
       topic: topic || 'General',
       aiAttempted: aiAttempted || false,
-      studentId: newStudentId,
-      fingerprint: newFingerprint
+      studentId: req.student ? req.student.id : null
     });
 
     const io = req.app.get('io');
