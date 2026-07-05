@@ -92,14 +92,12 @@ function getSimilarityScore(a, b) {
   const conceptA = wordsA.join(' ');
   const conceptB = wordsB.join(' ');
   if (conceptA === conceptB) return 1;
-  if (conceptA.includes(conceptB) || conceptB.includes(conceptA)) return 0.9;
 
   const setB = new Set(wordsB);
   const intersection = wordsA.filter((word) => setB.has(word)).length;
   const diceScore = (2 * intersection) / (wordsA.length + wordsB.length);
-  const coverageScore = intersection / Math.min(wordsA.length, wordsB.length);
 
-  return Math.max(diceScore, coverageScore * 0.86);
+  return diceScore;
 }
 
 function isSameSubmitter(existingDoubt, studentId, fingerprint) {
