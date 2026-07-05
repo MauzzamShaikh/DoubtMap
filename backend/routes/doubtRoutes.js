@@ -53,6 +53,7 @@ const DOUBT_FILLER_WORDS = new Set([
 ]);
 
 const INTENT_KEYWORDS = {
+  conversion: new Set(['convert', 'conversion', 'converting']),
   definition: new Set(['define', 'definition', 'explain', 'explanation', 'mean', 'meaning', 'means', 'overview', 'short']),
   properties: new Set(['property', 'properties', 'characteristic', 'characteristics', 'feature', 'features']),
   types: new Set(['type', 'types', 'kind', 'kinds', 'category', 'categories']),
@@ -64,6 +65,7 @@ const INTENT_KEYWORDS = {
 };
 
 function normalizeConceptWord(word) {
+  if (['conversion', 'converting', 'converted'].includes(word)) return 'convert';
   if (word.endsWith('ies') && word.length > 4) return `${word.slice(0, -3)}y`;
   if (word.endsWith('ing') && word.length > 5) return word.slice(0, -3);
   if (word.endsWith('ed') && word.length > 4) return word.slice(0, -2);
@@ -94,12 +96,34 @@ function getConceptWords(text) {
   return [...new Set(words)];
 }
 
+function getConversionDirection(words) {
+  const normalizedWords = words.map(normalizeConceptWord);
+  const toIndex = normalizedWords.lastIndexOf('to');
+
+  if (toIndex <= 0 || toIndex >= normalizedWords.length - 1) {
+    return null;
+  }
+
+  const from = [...normalizedWords]
+    .slice(0, toIndex)
+    .reverse()
+    .find((word) => word.length > 1 && !DOUBT_FILLER_WORDS.has(word) && word !== 'convert');
+  const to = normalizedWords
+    .slice(toIndex + 1)
+    .find((word) => word.length > 1 && !DOUBT_FILLER_WORDS.has(word) && word !== 'convert');
+
+  if (!from || !to) return null;
+
+  return { from, to };
+}
+
 function getDoubtSignature(text) {
   const words = normalizeDoubtText(text).split(' ').filter(Boolean);
 
   return {
     intent: getDoubtIntent(words),
-    conceptWords: getConceptWords(text)
+    conceptWords: getConceptWords(text),
+    conversionDirection: getConversionDirection(words)
   };
 }
 
@@ -121,6 +145,19 @@ function getSimilarityScore(a, b) {
   const conceptA = wordsA.join(' ');
   const conceptB = wordsB.join(' ');
   if (conceptA === conceptB) return 1;
+
+  if (signatureA.intent === 'conversion') {
+    const directionA = signatureA.conversionDirection;
+    const directionB = signatureB.conversionDirection;
+
+    if (!directionA || !directionB) {
+      return 0;
+    }
+
+    if (directionA.from !== directionB.from || directionA.to !== directionB.to) {
+      return 0;
+    }
+  }
 
   const setB = new Set(wordsB);
   const intersection = wordsA.filter((word) => setB.has(word)).length;
