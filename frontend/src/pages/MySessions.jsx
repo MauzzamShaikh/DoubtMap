@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { getTeacherToken, getTeacherInfo } from '../utils/auth';
+import { getTeacherToken, getTeacherInfo, logoutTeacher } from '../utils/auth';
 import ThemeToggle from '../components/ThemeToggle';
-import { Loader2, ArrowLeft, Plus, BookOpen, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, Plus, BookOpen, AlertTriangle, LogOut } from 'lucide-react';
 
 function MySessions() {
   const [sessions, setSessions] = useState([]);
@@ -53,6 +53,11 @@ function MySessions() {
 
   const teacher = getTeacherInfo();
 
+  const handleSignOut = () => {
+    logoutTeacher();
+    navigate('/teacher-login');
+  };
+
   return (
     <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 md:p-6 overflow-x-hidden transition-colors duration-300">
       {/* Background Decor */}
@@ -92,6 +97,12 @@ function MySessions() {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-center gap-1 bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-rose-500/30 px-4 py-2.5 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
             <Link
               to="/create"
               className="group flex items-center justify-center gap-1 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-indigo-650/15"
