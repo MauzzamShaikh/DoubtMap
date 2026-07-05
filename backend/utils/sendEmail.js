@@ -1,29 +1,43 @@
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
-  },
-});
+const axios = require("axios");
 
 async function sendEmail({ to, subject, html }) {
   try {
-    const info = await transporter.sendMail({
-      from: `"DoubtMap" <${process.env.BREVO_USER}>`,
-      to,
-      subject,
-      html
-    });
-    console.log('Email sent:', info.messageId);
-  } catch (err) {
-    console.error('Email send failed:', err);
-    throw err;
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "DoubtMap",
+          email: "mauzzamshaikh50@gmail.com", // Your verified sender
+        },
+        to: [
+          {
+            email: to,
+          },
+        ],
+        subject: subject,
+        htmlContent: html,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    console.log("✅ Email sent:", response.data);
+  } catch (error) {
+    console.error("❌ Brevo API Error:");
+
+    if (error.response) {
+      console.error(error.response.status);
+      console.error(error.response.data);
+    } else {
+      console.error(error.message);
+    }
+
+    throw error;
   }
 }
 
