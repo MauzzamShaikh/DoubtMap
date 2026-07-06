@@ -10,7 +10,9 @@ api.interceptors.request.use((config) => {
   const teacherToken = getTeacherToken();
   const studentToken = getStudentToken();
 
-  if (teacherToken) {
+  if (config.url.includes('/history') || config.url.includes('/student-auth')) {
+    if (studentToken) config.headers.Authorization = `Bearer ${studentToken}`;
+  } else if (teacherToken) {
     config.headers.Authorization = `Bearer ${teacherToken}`;
   } else if (studentToken) {
     config.headers.Authorization = `Bearer ${studentToken}`;

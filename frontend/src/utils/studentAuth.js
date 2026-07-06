@@ -1,4 +1,6 @@
 export function saveStudentAuth(token, student) {
+  localStorage.removeItem('student_token');
+  localStorage.removeItem('student_info');
   localStorage.setItem('student_token', token);
   localStorage.setItem('student_info', JSON.stringify(student));
 }
@@ -15,4 +17,5 @@ export function getStudentInfo() {
 export function logoutStudent() {
   localStorage.removeItem('student_token');
   localStorage.removeItem('student_info');
+  localStorage.removeItem('show_student_verify_warning');
 }
